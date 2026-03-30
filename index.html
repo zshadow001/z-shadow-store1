@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Z Shadow Store</title>
+
+<style>
+body {
+  margin: 0;
+  background: black;
+  color: #00ff00;
+  font-family: monospace;
+  overflow: hidden;
+}
+
+.topbar {
+  text-align: center;
+  padding: 5px;
+  background: #00ff00;
+  color: black;
+  font-size: 12px;
+}
+
+canvas {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: -2;
+}
+
+body::after {
+  content: "";
+  position: fixed;
+  width: 100%;
+  height: 100%;
+  background: repeating-linear-gradient(
+    0deg,
+    rgba(0,255,0,0.05),
+    rgba(0,255,0,0.05) 1px,
+    transparent 1px,
+    transparent 3px
+  );
+  z-index: -1;
+}
+
+#boot {
+  position: fixed;
+  width: 100%;
+  height: 100%;
+  background: black;
+  padding: 20px;
+}
+
+#main {
+  display: none;
+  padding-bottom: 50px;
+}
+
+h1 {
+  text-align: center;
+  margin: 20px;
+}
+
+.product {
+  max-width: 320px;
+  margin: 20px auto;
+  padding: 20px;
+  text-align: center;
+  border: 1px solid #00ff00;
+  border-radius: 10px;
+}
+
+.btn {
+  padding: 10px;
+  width: 100%;
+  background: black;
+  color: #00ff00;
+  border: 1px solid #00ff00;
+  border-radius: 20px;
+}
+</style>
+</head>
+
+<body>
+
+<div class="topbar">🔥 Official Store ⚡</div>
+<canvas id="matrix"></canvas>
+
+<div id="boot"></div>
+
+<div id="main">
+<h1 id="title"></h1>
+
+<!-- PRODUCTS AUTO LOAD -->
+<div id="products"></div>
+
+</div>
+
+<script>
+// LOAD PRODUCTS FROM BACKEND
+async function loadProducts() {
+  const res = await fetch('/api/products');
+  const data = await res.json();
+
+  const container = document.getElementById("products");
+
+  data.forEach(p => {
+    const div = document.createElement("div");
+    div.className = "product";
+
+    div.innerHTML = `
+      <h2>${p.name}</h2>
+      <a href="${p.link}" target="_blank">
+        <button class="btn">Buy Now</button>
+      </a>
+    `;
+
+    container.appendChild(div);
+  });
+}
+
+// TITLE
+const text = "⚡ Z SHADOW STORE ⚡";
+let ti = 0;
+function typeEffect() {
+  if (ti < text.length) {
+    document.getElementById("title").innerHTML += text.charAt(ti);
+    ti++;
+    setTimeout(typeEffect, 80);
+  }
+}
+
+// BOOT
+const bootText = [
+"Initializing system...",
+"Accessing server...",
+"Loading products...",
+"Access Granted ✔"
+];
+
+let bootDiv = document.getElementById("boot");
+let i = 0;
+
+function showBoot() {
+  if (i < bootText.length) {
+    let p = document.createElement("p");
+    p.textContent = "> " + bootText[i];
+    bootDiv.appendChild(p);
+    i++;
+    setTimeout(showBoot, 800);
+  } else {
+    setTimeout(() => {
+      bootDiv.style.display = "none";
+      document.getElementById("main").style.display = "block";
+      document.body.style.overflow = "auto";
+      typeEffect();
+      loadProducts(); // 🔥 backend call
+    }, 1000);
+  }
+}
+showBoot();
+
+// MATRIX EFFECT
+const canvas = document.getElementById("matrix");
+const ctx = canvas.getContext("2d");
+
+canvas.height = window.innerHeight;
+canvas.width = window.innerWidth;
+
+const letters = "01ABC";
+const fontSize = 14;
+const columns = canvas.width / fontSize;
+
+const drops = Array(Math.floor(columns)).fill(1);
+
+function draw() {
+  ctx.fillStyle = "rgba(0,0,0,0.05)";
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+  ctx.fillStyle = "#00ff00";
+  ctx.font = fontSize + "px monospace";
+
+  drops.forEach((y, i) => {
+    const text = letters[Math.floor(Math.random()*letters.length)];
+    ctx.fillText(text, i * fontSize, y * fontSize);
+
+    if (y * fontSize > canvas.height) drops[i] = 0;
+    drops[i]++;
+  });
+}
+
+setInterval(draw, 30);
+</script>
+
+</body>
+</html>
